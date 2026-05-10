@@ -9,6 +9,9 @@
   <meta name="apple-mobile-web-app-title" content="Consequence Tracker"/>
   <meta name="theme-color" content="#1c1917"/>
   <title>Consequence Tracker</title>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="apple-touch-icon" href="icon-192.svg"/>
+  <link rel="icon" type="image/svg+xml" href="icon-192.svg"/>
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
     html,body{min-height:100%;height:100%;}
@@ -3452,6 +3455,40 @@ try {
     '<div style="padding:30px;font-family:Georgia;color:#dc2626;">' +
     '<h2>App failed to load</h2><pre style="font-size:12px;margin-top:10px;white-space:pre-wrap;">' +
     err.toString() + '</pre></div>';
+}
+</script>
+
+<script>
+// Inline service worker — no separate sw.js file needed
+if ("serviceWorker" in navigator) {
+  var swCode = [
+    'var CACHE="ct-v1";',
+    'var ASSETS=["./","./index.html","./manifest.json"];',
+    'self.addEventListener("install",function(e){',
+    '  e.waitUntil(caches.open(CACHE).then(function(c){return c.addAll(ASSETS);}));',
+    '  self.skipWaiting();',
+    '});',
+    'self.addEventListener("activate",function(e){',
+    '  e.waitUntil(caches.keys().then(function(keys){',
+    '    return Promise.all(keys.filter(function(k){return k!==CACHE;}).map(function(k){return caches.delete(k);}));',
+    '  }));',
+    '  self.clients.claim();',
+    '});',
+    'self.addEventListener("fetch",function(e){',
+    '  e.respondWith(caches.match(e.request).then(function(c){',
+    '    return c||fetch(e.request).catch(function(){return caches.match("./index.html");});',
+    '  }));',
+    '});'
+  ].join("\n");
+
+  var blob = new Blob([swCode], {type: "application/javascript"});
+  var swUrl = URL.createObjectURL(blob);
+
+  window.addEventListener("load", function() {
+    navigator.serviceWorker.register(swUrl)
+      .then(function() { console.log("SW registered inline"); })
+      .catch(function(e) { console.log("SW skipped:", e); });
+  });
 }
 </script>
 </body>
