@@ -1,4 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="100" fill="#1c1917"/>
-  <text x="256" y="310" font-size="240" text-anchor="middle" fill="white" font-family="Georgia,serif">📋</text>
+  <rect width="512" height="512" rx="112" fill="#7c3aed"/>
+  <circle cx="256" cy="256" r="192" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="32"/>
+  <path d="M192,218 C192,165 128,165 128,218 C128,266 192,314 192,314 C192,314 256,266 256,218 C256,165 192,165 192,218 Z" fill="#f97316"/>
+  <path d="M320,218 C320,165 256,165 256,218 C256,266 320,314 320,314 C320,314 384,266 384,218 C384,165 320,165 320,218 Z" fill="#e879f9"/>
+  <circle cx="256" cy="362" r="58" fill="white"/>
+  <path d="M232,362 L248,380 L282,344" fill="none" stroke="#7c3aed" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
