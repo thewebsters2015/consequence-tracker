@@ -25,6 +25,16 @@
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:Georgia;color:#a8a29e;">Loading...</div></div>
 
 <script>
+// Auto-configure Supabase on every load
+(function() {
+  try {
+    localStorage.setItem('ct_supabase_anon_key', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFka2lzZnNiYW5sYmdlZ25vYmVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyODI3NzIsImV4cCI6MjA5Mzg1ODc3Mn0.1fe1HBzcHZR70FOvdiKJDlVMwzVb7R2gj62fMQN-H2Y');
+    localStorage.setItem('ct_use_supabase', 'true');
+    localStorage.setItem('ct_setup_done_v2', 'true');
+  } catch(e) {}
+})();
+</script>
+<script>
 
 // Robust storage: tries localStorage first, falls back to memory
 (function() {
@@ -410,7 +420,7 @@ function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
 function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
 var SUPABASE_URL = "https://qdkisfsbanlbgegnoben.supabase.co";
-var SUPABASE_ANON_KEY = "";
+var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFka2lzZnNiYW5sYmdlZ25vYmVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyODI3NzIsImV4cCI6MjA5Mzg1ODc3Mn0.1fe1HBzcHZR70FOvdiKJDlVMwzVb7R2gj62fMQN-H2Y";
 function sbFetch(_x) {
   return _sbFetch.apply(this, arguments);
 }
