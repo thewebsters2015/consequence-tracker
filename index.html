@@ -8,18 +8,15 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Consequence Tracker"/>
   <meta name="theme-color" content="#1c1917"/>
-  <meta name="msapplication-TileColor" content="#7c3aed"/>
-  <title>Consequence Tracker</title>
   <link rel="manifest" href="manifest.json"/>
   <link rel="apple-touch-icon" href="icon-192.svg"/>
   <link rel="icon" type="image/svg+xml" href="icon-192.svg"/>
+  <title>Consequence Tracker</title>
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-    html,body{min-height:100%;height:100%;}
-    #root{min-height:100%;}
+    html,body,#root{min-height:100%;}
     body{font-family:Georgia,serif;background:#fafaf9;-webkit-tap-highlight-color:transparent;}
     textarea,input,button{font-family:inherit;}
-    input[type=date]{-webkit-appearance:textfield;-moz-appearance:textfield;}
   </style>
 </head>
 <body>
@@ -35,60 +32,37 @@
   } catch(e) {}
 })();
 </script>
-<script>
 
-// Robust storage: tries localStorage first, falls back to memory
+<script>
+// Robust storage shim
 (function() {
   var mem = {};
   var useLocal = true;
-  try {
-    localStorage.setItem('__test__', '1');
-    localStorage.removeItem('__test__');
-  } catch(e) {
-    useLocal = false;
-    console.warn('localStorage not available, using memory storage');
-  }
-
+  try { localStorage.setItem('__test__','1'); localStorage.removeItem('__test__'); } catch(e) { useLocal = false; }
   window.storage = {
-    get: async function(key) {
-      var k = 'ct_' + key;
-      var val = useLocal ? localStorage.getItem(k) : mem[k];
-      if (val === null || val === undefined) throw new Error('not found: ' + key);
-      return { key: key, value: val };
+    get: async function(k) {
+      var v = useLocal ? localStorage.getItem('ct_'+k) : mem['ct_'+k];
+      if (v === null || v === undefined) throw new Error('not found');
+      return {key:k, value:v};
     },
-    set: async function(key, value) {
-      var k = 'ct_' + key;
-      var v = String(value);
-      if (useLocal) {
-        try { localStorage.setItem(k, v); } catch(e) { useLocal = false; mem[k] = v; }
-      } else {
-        mem[k] = v;
-      }
-      return { key: key, value: v };
+    set: async function(k,v) {
+      var sv = String(v);
+      if (useLocal) { try { localStorage.setItem('ct_'+k,sv); } catch(e) { useLocal=false; mem['ct_'+k]=sv; } }
+      else mem['ct_'+k]=sv;
+      return {key:k,value:sv};
     },
-    delete: async function(key) {
-      var k = 'ct_' + key;
-      if (useLocal) localStorage.removeItem(k); else delete mem[k];
-      return { key: key, deleted: true };
+    delete: async function(k) {
+      if (useLocal) localStorage.removeItem('ct_'+k); else delete mem['ct_'+k];
+      return {key:k,deleted:true};
     },
-    list: async function(prefix) {
-      var p = 'ct_' + (prefix || '');
-      var keys = [];
-      if (useLocal) {
-        for (var i = 0; i < localStorage.length; i++) {
-          var lk = localStorage.key(i);
-          if (lk && lk.indexOf(p) === 0) keys.push(lk.replace('ct_', ''));
-        }
-      } else {
-        Object.keys(mem).forEach(function(lk) {
-          if (lk.indexOf(p) === 0) keys.push(lk.replace('ct_', ''));
-        });
-      }
-      return { keys: keys };
+    list: async function(p) {
+      var pre='ct_'+(p||''); var keys=[];
+      if (useLocal) { for(var i=0;i<localStorage.length;i++){ var lk=localStorage.key(i); if(lk&&lk.startsWith(pre)) keys.push(lk.replace('ct_','')); } }
+      else Object.keys(mem).forEach(function(lk){ if(lk.startsWith(pre)) keys.push(lk.replace('ct_','')); });
+      return {keys:keys};
     }
   };
 })();
-
 </script>
 
 <script>
@@ -125,7 +99,6 @@ c.useState=function(a){return g.current.useState(a)};c.useSyncExternalStore=func
 })();
 
 </script>
-
 <script>
 /**
  * @license React
@@ -396,7 +369,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 })();
 
 </script>
-
 <script>
 
 const { useState, useEffect, useRef } = React;
@@ -3456,50 +3428,30 @@ window.AppComponent = function App() {
   }), settingsModal);
 };
 
-// Mount
+// Inline service worker for installability
+if ("serviceWorker" in navigator) {
+  var swCode = [
+    'var CACHE="ct-v2";',
+    'var ASSETS=["./","./index.html","./manifest.json"];',
+    'self.addEventListener("install",function(e){e.waitUntil(caches.open(CACHE).then(function(c){return c.addAll(ASSETS);}));self.skipWaiting();});',
+    'self.addEventListener("activate",function(e){e.waitUntil(caches.keys().then(function(keys){return Promise.all(keys.filter(function(k){return k!==CACHE;}).map(function(k){return caches.delete(k);}))}););self.clients.claim();});',
+    'self.addEventListener("fetch",function(e){e.respondWith(caches.match(e.request).then(function(c){return c||fetch(e.request).catch(function(){return caches.match("./index.html");});}))});'
+  ].join("\n");
+  var blob = new Blob([swCode], {type:"application/javascript"});
+  var swUrl = URL.createObjectURL(blob);
+  window.addEventListener("load", function() {
+    navigator.serviceWorker.register(swUrl).catch(function(e){ console.log("SW skipped:", e); });
+  });
+}
+
+// Mount app
 try {
   var container = document.getElementById('root');
   var root = ReactDOM.createRoot(container);
   root.render(React.createElement(window.AppComponent));
 } catch(err) {
   document.getElementById('root').innerHTML =
-    '<div style="padding:30px;font-family:Georgia;color:#dc2626;">' +
-    '<h2>App failed to load</h2><pre style="font-size:12px;margin-top:10px;white-space:pre-wrap;">' +
-    err.toString() + '</pre></div>';
-}
-</script>
-
-<script>
-// Inline service worker — no separate sw.js file needed
-if ("serviceWorker" in navigator) {
-  var swCode = [
-    'var CACHE="ct-v1";',
-    'var ASSETS=["./","./index.html","./manifest.json"];',
-    'self.addEventListener("install",function(e){',
-    '  e.waitUntil(caches.open(CACHE).then(function(c){return c.addAll(ASSETS);}));',
-    '  self.skipWaiting();',
-    '});',
-    'self.addEventListener("activate",function(e){',
-    '  e.waitUntil(caches.keys().then(function(keys){',
-    '    return Promise.all(keys.filter(function(k){return k!==CACHE;}).map(function(k){return caches.delete(k);}));',
-    '  }));',
-    '  self.clients.claim();',
-    '});',
-    'self.addEventListener("fetch",function(e){',
-    '  e.respondWith(caches.match(e.request).then(function(c){',
-    '    return c||fetch(e.request).catch(function(){return caches.match("./index.html");});',
-    '  }));',
-    '});'
-  ].join("\n");
-
-  var blob = new Blob([swCode], {type: "application/javascript"});
-  var swUrl = URL.createObjectURL(blob);
-
-  window.addEventListener("load", function() {
-    navigator.serviceWorker.register(swUrl)
-      .then(function() { console.log("SW registered inline"); })
-      .catch(function(e) { console.log("SW skipped:", e); });
-  });
+    '<div style="padding:30px;font-family:Georgia;color:#dc2626;"><h2>App failed to load</h2><pre style="font-size:12px;margin-top:10px;white-space:pre-wrap;">' + err.toString() + '</pre></div>';
 }
 </script>
 </body>
