@@ -23,42 +23,51 @@
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:Georgia;color:#a8a29e;">Loading...</div></div>
 
 <script>
-// Auto-configure Supabase on every load
+/* ── STEP 1: Force Supabase config into localStorage on EVERY load ── */
 (function() {
+  var KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFka2lzZnNiYW5sYmdlZ25vYmVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyODI3NzIsImV4cCI6MjA5Mzg1ODc3Mn0.1fe1HBzcHZR70FOvdiKJDlVMwzVb7R2gj62fMQN-H2Y";
   try {
-    localStorage.setItem('ct_supabase_anon_key', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFka2lzZnNiYW5sYmdlZ25vYmVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyODI3NzIsImV4cCI6MjA5Mzg1ODc3Mn0.1fe1HBzcHZR70FOvdiKJDlVMwzVb7R2gj62fMQN-H2Y');
-    localStorage.setItem('ct_use_supabase', 'true');
-    localStorage.setItem('ct_setup_done_v2', 'true');
-  } catch(e) {}
+    localStorage.setItem("ct_supabase_anon_key", KEY);
+    localStorage.setItem("ct_use_supabase", "true");
+    localStorage.setItem("ct_setup_done_v2", "true");
+  } catch(e) { console.warn("localStorage blocked, using memory only"); }
 })();
 </script>
 
 <script>
-// Robust storage shim
+/* ── STEP 2: Storage shim (localStorage with memory fallback) ── */
 (function() {
   var mem = {};
   var useLocal = true;
-  try { localStorage.setItem('__test__','1'); localStorage.removeItem('__test__'); } catch(e) { useLocal = false; }
+  try { localStorage.setItem("__chk__","1"); localStorage.removeItem("__chk__"); } catch(e) { useLocal = false; }
   window.storage = {
     get: async function(k) {
-      var v = useLocal ? localStorage.getItem('ct_'+k) : mem['ct_'+k];
-      if (v === null || v === undefined) throw new Error('not found');
+      var v = useLocal ? localStorage.getItem("ct_"+k) : mem["ct_"+k];
+      if (v === null || v === undefined) throw new Error("not found: "+k);
       return {key:k, value:v};
     },
-    set: async function(k,v) {
+    set: async function(k, v) {
       var sv = String(v);
-      if (useLocal) { try { localStorage.setItem('ct_'+k,sv); } catch(e) { useLocal=false; mem['ct_'+k]=sv; } }
-      else mem['ct_'+k]=sv;
-      return {key:k,value:sv};
+      if (useLocal) { try { localStorage.setItem("ct_"+k, sv); } catch(e) { useLocal=false; mem["ct_"+k]=sv; } }
+      else { mem["ct_"+k]=sv; }
+      return {key:k, value:sv};
     },
     delete: async function(k) {
-      if (useLocal) localStorage.removeItem('ct_'+k); else delete mem['ct_'+k];
-      return {key:k,deleted:true};
+      if (useLocal) localStorage.removeItem("ct_"+k); else delete mem["ct_"+k];
+      return {key:k, deleted:true};
     },
     list: async function(p) {
-      var pre='ct_'+(p||''); var keys=[];
-      if (useLocal) { for(var i=0;i<localStorage.length;i++){ var lk=localStorage.key(i); if(lk&&lk.startsWith(pre)) keys.push(lk.replace('ct_','')); } }
-      else Object.keys(mem).forEach(function(lk){ if(lk.startsWith(pre)) keys.push(lk.replace('ct_','')); });
+      var pre = "ct_"+(p||""); var keys = [];
+      if (useLocal) {
+        for (var i=0; i<localStorage.length; i++) {
+          var lk = localStorage.key(i);
+          if (lk && lk.indexOf(pre)===0) keys.push(lk.replace("ct_",""));
+        }
+      } else {
+        Object.keys(mem).forEach(function(lk) {
+          if (lk.indexOf(pre)===0) keys.push(lk.replace("ct_",""));
+        });
+      }
       return {keys:keys};
     }
   };
@@ -66,6 +75,7 @@
 </script>
 
 <script>
+/* ── STEP 3: React ── */
 /**
  * @license React
  * react.production.min.js
@@ -99,7 +109,9 @@ c.useState=function(a){return g.current.useState(a)};c.useSyncExternalStore=func
 })();
 
 </script>
+
 <script>
+/* ── STEP 4: ReactDOM ── */
 /**
  * @license React
  * react-dom.production.min.js
@@ -369,7 +381,9 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 })();
 
 </script>
+
 <script>
+/* ── STEP 5: App (API key hardcoded inside) ── */
 
 const { useState, useEffect, useRef } = React;
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
@@ -3427,31 +3441,32 @@ window.AppComponent = function App() {
     }
   }), settingsModal);
 };
+</script>
 
-// Inline service worker for installability
-if ("serviceWorker" in navigator) {
-  var swCode = [
-    'var CACHE="ct-v2";',
-    'var ASSETS=["./","./index.html","./manifest.json"];',
-    'self.addEventListener("install",function(e){e.waitUntil(caches.open(CACHE).then(function(c){return c.addAll(ASSETS);}));self.skipWaiting();});',
-    'self.addEventListener("activate",function(e){e.waitUntil(caches.keys().then(function(keys){return Promise.all(keys.filter(function(k){return k!==CACHE;}).map(function(k){return caches.delete(k);}))}););self.clients.claim();});',
-    'self.addEventListener("fetch",function(e){e.respondWith(caches.match(e.request).then(function(c){return c||fetch(e.request).catch(function(){return caches.match("./index.html");});}))});'
-  ].join("\n");
-  var blob = new Blob([swCode], {type:"application/javascript"});
-  var swUrl = URL.createObjectURL(blob);
-  window.addEventListener("load", function() {
-    navigator.serviceWorker.register(swUrl).catch(function(e){ console.log("SW skipped:", e); });
-  });
-}
-
-// Mount app
+<script>
+/* ── STEP 6: Mount + inline service worker ── */
 try {
-  var container = document.getElementById('root');
+  var container = document.getElementById("root");
   var root = ReactDOM.createRoot(container);
   root.render(React.createElement(window.AppComponent));
 } catch(err) {
-  document.getElementById('root').innerHTML =
-    '<div style="padding:30px;font-family:Georgia;color:#dc2626;"><h2>App failed to load</h2><pre style="font-size:12px;margin-top:10px;white-space:pre-wrap;">' + err.toString() + '</pre></div>';
+  document.getElementById("root").innerHTML =
+    "<div style='padding:30px;font-family:Georgia;color:#dc2626;'><h2>App failed to load</h2><pre style='font-size:12px;margin-top:10px;white-space:pre-wrap;'>" + err.toString() + "</pre></div>";
+}
+
+if ("serviceWorker" in navigator) {
+  var swCode = [
+    "var CACHE='ct-v3';",
+    "var ASSETS=['./','./index.html','./manifest.json'];",
+    "self.addEventListener('install',function(e){e.waitUntil(caches.open(CACHE).then(function(c){return c.addAll(ASSETS);}));self.skipWaiting();});",
+    "self.addEventListener('activate',function(e){e.waitUntil(caches.keys().then(function(keys){return Promise.all(keys.filter(function(k){return k!==CACHE;}).map(function(k){return caches.delete(k);}));}));self.clients.claim();});",
+    "self.addEventListener('fetch',function(e){e.respondWith(caches.match(e.request).then(function(c){return c||fetch(e.request).catch(function(){return caches.match('./index.html');});}))});"
+  ].join("\n");
+  var blob = new Blob([swCode], {type:"application/javascript"});
+  window.addEventListener("load", function() {
+    navigator.serviceWorker.register(URL.createObjectURL(blob))
+      .catch(function(e) { console.log("SW skipped:", e); });
+  });
 }
 </script>
 </body>
