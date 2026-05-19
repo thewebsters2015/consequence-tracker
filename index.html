@@ -23,48 +23,60 @@
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:Georgia;color:#a8a29e;">Loading...</div></div>
 
 <script>
-/* ── STEP 1: Force Supabase config into localStorage on EVERY load ── */
+/* ===== PERMANENT SUPABASE CONFIG — DO NOT REMOVE =====
+   This block runs first on every page load.
+   It forces the API key, skips setup, and enables sync.
+   The key is hardcoded here AND inside the app code.
+   ===================================================== */
 (function() {
-  var KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFka2lzZnNiYW5sYmdlZ25vYmVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyODI3NzIsImV4cCI6MjA5Mzg1ODc3Mn0.1fe1HBzcHZR70FOvdiKJDlVMwzVb7R2gj62fMQN-H2Y";
-  try {
-    localStorage.setItem("ct_supabase_anon_key", KEY);
-    localStorage.setItem("ct_use_supabase", "true");
-    localStorage.setItem("ct_setup_done_v2", "true");
-  } catch(e) { console.warn("localStorage blocked, using memory only"); }
+  var K = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFka2lzZnNiYW5sYmdlZ25vYmVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyODI3NzIsImV4cCI6MjA5Mzg1ODc3Mn0.1fe1HBzcHZR70FOvdiKJDlVMwzVb7R2gj62fMQN-H2Y";
+  var entries = [
+    ["ct_supabase_anon_key", K],
+    ["ct_use_supabase",      "true"],
+    ["ct_setup_done_v2",     "true"]
+  ];
+  for (var i = 0; i < entries.length; i++) {
+    try { localStorage.setItem(entries[i][0], entries[i][1]); } catch(e) {}
+    try { sessionStorage.setItem(entries[i][0], entries[i][1]); } catch(e) {}
+  }
+  /* Also set on window so app picks it up even if storage is blocked */
+  window.__SBKEY__ = K;
+  window.__SETUP_DONE__ = true;
+  window.__USE_SUPABASE__ = true;
 })();
 </script>
 
 <script>
-/* ── STEP 2: Storage shim (localStorage with memory fallback) ── */
+/* ===== STORAGE SHIM ===== */
 (function() {
   var mem = {};
   var useLocal = true;
-  try { localStorage.setItem("__chk__","1"); localStorage.removeItem("__chk__"); } catch(e) { useLocal = false; }
+  try { localStorage.setItem("__t__","1"); localStorage.removeItem("__t__"); } catch(e) { useLocal = false; }
   window.storage = {
     get: async function(k) {
       var v = useLocal ? localStorage.getItem("ct_"+k) : mem["ct_"+k];
       if (v === null || v === undefined) throw new Error("not found: "+k);
       return {key:k, value:v};
     },
-    set: async function(k, v) {
+    set: async function(k,v) {
       var sv = String(v);
-      if (useLocal) { try { localStorage.setItem("ct_"+k, sv); } catch(e) { useLocal=false; mem["ct_"+k]=sv; } }
+      if (useLocal) { try { localStorage.setItem("ct_"+k,sv); } catch(e) { useLocal=false; mem["ct_"+k]=sv; } }
       else { mem["ct_"+k]=sv; }
-      return {key:k, value:sv};
+      return {key:k,value:sv};
     },
     delete: async function(k) {
       if (useLocal) localStorage.removeItem("ct_"+k); else delete mem["ct_"+k];
-      return {key:k, deleted:true};
+      return {key:k,deleted:true};
     },
     list: async function(p) {
-      var pre = "ct_"+(p||""); var keys = [];
+      var pre="ct_"+(p||""); var keys=[];
       if (useLocal) {
-        for (var i=0; i<localStorage.length; i++) {
-          var lk = localStorage.key(i);
-          if (lk && lk.indexOf(pre)===0) keys.push(lk.replace("ct_",""));
+        for (var i=0;i<localStorage.length;i++) {
+          var lk=localStorage.key(i);
+          if (lk&&lk.indexOf(pre)===0) keys.push(lk.replace("ct_",""));
         }
       } else {
-        Object.keys(mem).forEach(function(lk) {
+        Object.keys(mem).forEach(function(lk){
           if (lk.indexOf(pre)===0) keys.push(lk.replace("ct_",""));
         });
       }
@@ -74,8 +86,7 @@
 })();
 </script>
 
-<script>
-/* ── STEP 3: React ── */
+<script>/* ===== REACT ===== */
 /**
  * @license React
  * react.production.min.js
@@ -110,8 +121,7 @@ c.useState=function(a){return g.current.useState(a)};c.useSyncExternalStore=func
 
 </script>
 
-<script>
-/* ── STEP 4: ReactDOM ── */
+<script>/* ===== REACT DOM ===== */
 /**
  * @license React
  * react-dom.production.min.js
@@ -382,8 +392,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
 </script>
 
-<script>
-/* ── STEP 5: App (API key hardcoded inside) ── */
+<script>/* ===== APP (API KEY HARDCODED INSIDE) ===== */
 
 const { useState, useEffect, useRef } = React;
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
@@ -3444,28 +3453,31 @@ window.AppComponent = function App() {
 </script>
 
 <script>
-/* ── STEP 6: Mount + inline service worker ── */
+/* ===== MOUNT APP ===== */
 try {
   var container = document.getElementById("root");
-  var root = ReactDOM.createRoot(container);
-  root.render(React.createElement(window.AppComponent));
+  var r = ReactDOM.createRoot(container);
+  r.render(React.createElement(window.AppComponent));
 } catch(err) {
   document.getElementById("root").innerHTML =
-    "<div style='padding:30px;font-family:Georgia;color:#dc2626;'><h2>App failed to load</h2><pre style='font-size:12px;margin-top:10px;white-space:pre-wrap;'>" + err.toString() + "</pre></div>";
+    "<div style='padding:30px;font-family:Georgia;color:#dc2626;'>" +
+    "<h2>App failed to load</h2><pre style='font-size:12px;margin-top:10px;white-space:pre-wrap;'>" +
+    err.toString() + "</pre></div>";
 }
 
+/* ===== INLINE SERVICE WORKER (no sw.js file needed) ===== */
 if ("serviceWorker" in navigator) {
-  var swCode = [
-    "var CACHE='ct-v3';",
-    "var ASSETS=['./','./index.html','./manifest.json'];",
-    "self.addEventListener('install',function(e){e.waitUntil(caches.open(CACHE).then(function(c){return c.addAll(ASSETS);}));self.skipWaiting();});",
-    "self.addEventListener('activate',function(e){e.waitUntil(caches.keys().then(function(keys){return Promise.all(keys.filter(function(k){return k!==CACHE;}).map(function(k){return caches.delete(k);}));}));self.clients.claim();});",
+  var sw = [
+    "var C='ct-v4';",
+    "var A=['./','./index.html','./manifest.json'];",
+    "self.addEventListener('install',function(e){e.waitUntil(caches.open(C).then(function(c){return c.addAll(A);}));self.skipWaiting();});",
+    "self.addEventListener('activate',function(e){e.waitUntil(caches.keys().then(function(ks){return Promise.all(ks.filter(function(k){return k!==C;}).map(function(k){return caches.delete(k);}));}));self.clients.claim();});",
     "self.addEventListener('fetch',function(e){e.respondWith(caches.match(e.request).then(function(c){return c||fetch(e.request).catch(function(){return caches.match('./index.html');});}))});"
   ].join("\n");
-  var blob = new Blob([swCode], {type:"application/javascript"});
+  var blob = new Blob([sw], {type:"application/javascript"});
   window.addEventListener("load", function() {
     navigator.serviceWorker.register(URL.createObjectURL(blob))
-      .catch(function(e) { console.log("SW skipped:", e); });
+      .catch(function(e){ console.log("SW skipped:", e); });
   });
 }
 </script>
