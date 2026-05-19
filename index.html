@@ -2,90 +2,215 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+
+<!-- ── NATIVE APP META TAGS ───────────────────────────── -->
+<!-- Removes ALL browser chrome when added to home screen -->
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover"/>
+
+<!-- Android: full screen, no browser bars -->
 <meta name="mobile-web-app-capable" content="yes"/>
+
+<!-- iOS: full screen, no Safari bars -->
 <meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-title" content="Consequence Tracker"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="KarmaKanvas"/>
+
+<!-- Windows tiles -->
+<meta name="msapplication-TileColor" content="#1c1917"/>
+<meta name="msapplication-tap-highlight" content="no"/>
+
+<!-- Status bar / notch color -->
 <meta name="theme-color" content="#1c1917"/>
+
+<!-- PWA manifest (makes browser offer "install" prompt) -->
 <link rel="manifest" href="manifest.json"/>
+
+<!-- Icons -->
 <link rel="apple-touch-icon" href="icon-192.svg"/>
-<title>Consequence Tracker</title>
+<link rel="icon" type="image/svg+xml" href="icon-192.svg"/>
+
+<title>KarmaKanvas</title>
+
 <style>
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:Georgia,serif;background:#fafaf9;-webkit-tap-highlight-color:transparent;}
-button,input,textarea,select{font-family:inherit;}
-input[type=date]{-webkit-appearance:none;appearance:none;}
-.screen{min-height:100vh;padding-bottom:72px;}
-.header{background:#1c1917;padding:16px 16px 0;position:sticky;top:0;z-index:10;}
-.header h1{color:#fafaf9;font-size:20px;font-weight:400;margin:2px 0 0;}
-.header p{color:#a8a29e;font-size:10px;letter-spacing:.15em;text-transform:uppercase;margin:0;}
-.tabs{display:flex;gap:4px;margin-top:12px;}
-.tab-btn{padding:10px 20px;border:none;border-radius:8px 8px 0 0;cursor:pointer;font-size:14px;position:relative;transition:all .15s;}
-.content{max-width:520px;margin:0 auto;padding:0 16px 20px;}
-.kid-bar{border-top:none;border-radius:0 0 12px 12px;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
-.stats{display:flex;gap:8px;margin-bottom:16px;}
-.stat-box{flex:1;background:white;border:1px solid #e7e5e4;border-radius:10px;padding:10px 8px;text-align:center;}
-.stat-num{font-size:22px;font-weight:700;line-height:1;}
-.stat-label{font-size:10px;color:#a8a29e;margin-top:2px;letter-spacing:.05em;}
-.add-btn{width:100%;padding:13px;color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:16px;display:flex;align-items:center;justify-content:center;gap:8px;}
-.card{background:white;border:1px solid #e7e5e4;border-radius:12px;padding:14px 16px;margin-bottom:10px;}
-.card.inactive{opacity:.65;background:#fafaf9;}
-.card-title{font-size:15px;color:#1c1917;font-weight:600;line-height:1.4;flex:1;}
-.card-row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
-.card-date{font-size:12px;color:#78716c;margin-top:4px;}
-.card-by{font-size:11px;color:#a8a29e;margin-top:2px;}
-.card-note{font-size:12px;color:#a8a29e;font-style:italic;margin-top:4px;}
-.card-actions{display:flex;gap:8px;margin-top:10px;}
-.small-btn{padding:5px 12px;background:white;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;}
-.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.04em;}
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #e7e5e4;display:flex;z-index:20;box-shadow:0 -4px 20px rgba(0,0,0,.06);}
-.nav-btn{flex:1;padding:10px 0 8px;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px;}
-.nav-icon{font-size:18px;line-height:1;}
-.nav-label{font-size:9px;letter-spacing:.04em;}
-.nav-bar{width:16px;height:2px;background:#1c1917;border-radius:2px;margin-top:1px;}
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;display:flex;align-items:flex-end;}
-.modal{background:white;border-radius:20px 20px 0 0;width:100%;max-height:88vh;overflow-y:auto;padding-bottom:32px;position:relative;}
-.modal-handle{display:flex;justify-content:center;padding:12px 0 0;}
-.modal-handle div{width:36px;height:4px;border-radius:2px;background:#e7e5e4;}
-.modal-header{padding:12px 20px 14px;border-bottom:1px solid #f5f5f4;}
-.modal-body{padding:16px;}
-.field-label{display:block;font-size:11px;color:#78716c;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;}
-.input{width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #e7e5e4;border-radius:8px;font-size:14px;outline:none;background:#fafaf9;}
-.duration-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:20px;}
-.dur-btn{padding:10px 4px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;text-align:center;line-height:1.3;border:2px solid #e7e5e4;background:white;color:#44403c;}
-.dur-btn.active{border-color:#1c1917;background:#1c1917;color:white;}
-.dur-btn.wide{grid-column:span 2;}
-.kid-selector{display:flex;gap:8px;margin-bottom:20px;}
-.kid-sel-btn{flex:1;padding:12px 8px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:700;border:2px solid #e7e5e4;background:white;color:#78716c;}
-.preset-cat{margin-bottom:8px;}
-.preset-cat-btn{width:100%;padding:11px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:14px;font-weight:700;border:1px solid #e7e5e4;border-radius:10px;background:#fafaf9;}
-.preset-cat-btn.open{border-radius:10px 10px 0 0;background:#1c1917;color:white;}
-.preset-items{border:1px solid #e7e5e4;border-top:none;border-radius:0 0 10px 10px;overflow:hidden;}
-.preset-item{padding:11px 14px;cursor:pointer;display:flex;align-items:center;gap:12px;border-bottom:1px solid #f5f5f4;}
-.preset-item:last-child{border-bottom:none;}
-.preset-item.selected{background:#fff7ed;}
-.checkbox{width:20px;height:20px;border-radius:6px;border:2px solid #e7e5e4;background:white;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.checkbox.checked{border:none;background:#f97316;}
-.overlap-overlay{position:absolute;inset:0;background:rgba(255,255,255,.97);border-radius:20px 20px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 20px;z-index:10;}
-.settings-modal{background:white;border-radius:20px 20px 0 0;width:100%;max-height:90vh;overflow-y:auto;padding-bottom:40px;}
-.status-badge{border-radius:12px;padding:12px 14px;margin-bottom:20px;display:flex;align-items:center;gap:10px;}
-.empty-state{text-align:center;padding:40px 20px;color:#a8a29e;}
-.empty-icon{font-size:36px;margin-bottom:8px;}
-.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
-.cal-day{border-radius:8px;padding:6px 2px 4px;text-align:center;cursor:pointer;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;border:1px solid #e7e5e4;background:white;}
-.cal-day.today{border:1.5px solid #a8a29e;background:#f5f5f4;}
-.cal-day.selected{background:#1c1917;}
-.cal-dot-row{display:flex;gap:2px;margin-top:3px;justify-content:center;}
-.cal-dot{width:7px;height:7px;border-radius:50%;display:inline-block;}
-.journal-entry{background:white;border:1px solid #e7e5e4;border-radius:10px;padding:12px 14px;margin-bottom:8px;}
-.comment{background:#f5f5f4;border-radius:8px;padding:8px 10px;margin-bottom:6px;}
-.summary-card{background:white;border-radius:14px;padding:14px;}
-.gear-btn{background:#292524;border:none;border-radius:8px;padding:5px 9px;font-size:18px;cursor:pointer;line-height:1;}
-.parent-btn{background:#292524;border:none;border-radius:8px;padding:4px 10px;color:#a8a29e;font-size:11px;cursor:pointer;}
+/* ── RESET & APP SHELL ────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  height: 100%;
+  /* Prevent iOS bounce scroll */
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
+
+body {
+  height: 100%;
+  width: 100%;
+  font-family: Georgia, serif;
+  background: #1c1917;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  /* Safe area insets for notched phones */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  overflow: hidden;
+}
+
+/* Allow text selection inside inputs/textareas */
+input, textarea { -webkit-user-select: text; user-select: text; }
+
+/* App container — full screen scrollable */
+#root {
+  height: 100%;
+  width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  background: #fafaf9;
+}
+
+/* ── SPLASH SCREEN ────────────────────────────────────── */
+#splash {
+  position: fixed;
+  inset: 0;
+  background: #1c1917;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  transition: opacity 0.4s ease;
+}
+#splash.hidden { opacity: 0; pointer-events: none; }
+.splash-icon { font-size: 64px; margin-bottom: 16px; }
+.splash-title { color: #fafaf9; font-size: 24px; font-weight: 400; letter-spacing: -0.01em; }
+.splash-sub { color: #a8a29e; font-size: 13px; margin-top: 8px; letter-spacing: 0.1em; text-transform: uppercase; }
+.splash-dots { display: flex; gap: 8px; margin-top: 32px; }
+.splash-dot { width: 8px; height: 8px; border-radius: 50%; background: #a8a29e; animation: pulse 1.2s infinite; }
+.splash-dot:nth-child(2) { animation-delay: 0.2s; }
+.splash-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes pulse { 0%,100%{opacity:.3;transform:scale(.8);} 50%{opacity:1;transform:scale(1);} }
+
+/* ── LAYOUT ───────────────────────────────────────────── */
+.screen { min-height: 100%; padding-bottom: 80px; }
+button, input, textarea, select { font-family: inherit; -webkit-appearance: none; appearance: none; }
+input[type=date] { -webkit-appearance: none; }
+
+/* ── HEADER ───────────────────────────────────────────── */
+.header { background: #1c1917; padding: 14px 16px 0; position: sticky; top: 0; z-index: 10; }
+.header h1 { color: #fafaf9; font-size: 20px; font-weight: 400; margin: 2px 0 0; }
+.header p.family-label { color: #a8a29e; font-size: 10px; letter-spacing: .15em; text-transform: uppercase; margin: 0; }
+.header-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+.header-actions { display: flex; align-items: center; gap: 6px; }
+
+/* ── TABS ─────────────────────────────────────────────── */
+.tabs { display: flex; gap: 4px; margin-top: 12px; }
+.tab-btn { padding: 10px 20px; border: none; border-radius: 8px 8px 0 0; cursor: pointer; font-size: 14px; position: relative; transition: all .15s; }
+
+/* ── CONTENT ──────────────────────────────────────────── */
+.content { max-width: 520px; margin: 0 auto; padding: 0 16px 20px; }
+.kid-bar { border-top: none; border-radius: 0 0 12px 12px; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.stats { display: flex; gap: 8px; margin-bottom: 16px; }
+.stat-box { flex: 1; background: white; border: 1px solid #e7e5e4; border-radius: 10px; padding: 10px 8px; text-align: center; }
+.stat-num { font-size: 22px; font-weight: 700; line-height: 1; }
+.stat-label { font-size: 10px; color: #a8a29e; margin-top: 2px; letter-spacing: .05em; }
+.add-btn { width: 100%; padding: 13px; color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.card { background: white; border: 1px solid #e7e5e4; border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; }
+.card.inactive { opacity: .65; background: #fafaf9; }
+.card-title { font-size: 15px; color: #1c1917; font-weight: 600; line-height: 1.4; flex: 1; }
+.card-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.card-date { font-size: 12px; color: #78716c; margin-top: 4px; }
+.card-by { font-size: 11px; color: #a8a29e; margin-top: 2px; }
+.card-note { font-size: 12px; color: #a8a29e; font-style: italic; margin-top: 4px; }
+.card-actions { display: flex; gap: 8px; margin-top: 10px; }
+.small-btn { padding: 5px 12px; background: white; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; border: 1px solid #e7e5e4; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: .04em; white-space: nowrap; }
+
+/* ── BOTTOM NAV ───────────────────────────────────────── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid #e7e5e4;
+  display: flex;
+  z-index: 20;
+  box-shadow: 0 -4px 20px rgba(0,0,0,.06);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.nav-btn { flex: 1; padding: 10px 0 8px; background: none; border: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 1px; }
+.nav-icon { font-size: 18px; line-height: 1; }
+.nav-label { font-size: 9px; letter-spacing: .04em; }
+.nav-bar { width: 16px; height: 2px; background: #1c1917; border-radius: 2px; margin-top: 1px; }
+
+/* ── MODALS ───────────────────────────────────────────── */
+.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 50; display: flex; align-items: flex-end; }
+.modal { background: white; border-radius: 20px 20px 0 0; width: 100%; max-height: 88vh; overflow-y: auto; padding-bottom: 32px; position: relative; -webkit-overflow-scrolling: touch; }
+.modal-handle { display: flex; justify-content: center; padding: 12px 0 0; }
+.modal-handle div { width: 36px; height: 4px; border-radius: 2px; background: #e7e5e4; }
+.modal-header { padding: 12px 20px 14px; border-bottom: 1px solid #f5f5f4; }
+.modal-body { padding: 16px; }
+.field-label { display: block; font-size: 11px; color: #78716c; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 6px; }
+.input { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #e7e5e4; border-radius: 8px; font-size: 14px; outline: none; background: #fafaf9; }
+.duration-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; margin-bottom: 20px; }
+.dur-btn { padding: 10px 4px; border-radius: 10px; cursor: pointer; font-size: 12px; font-weight: 600; text-align: center; line-height: 1.3; border: 2px solid #e7e5e4; background: white; color: #44403c; }
+.dur-btn.active, .dur-btn:active { border-color: #1c1917; background: #1c1917; color: white; }
+.dur-btn.wide { grid-column: span 2; }
+.kid-selector { display: flex; gap: 8px; margin-bottom: 20px; }
+.kid-sel-btn { flex: 1; padding: 12px 8px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 700; border: 2px solid #e7e5e4; background: white; color: #78716c; }
+.preset-cat { margin-bottom: 8px; }
+.preset-cat-btn { width: 100%; padding: 11px 14px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-size: 14px; font-weight: 700; border: 1px solid #e7e5e4; border-radius: 10px; background: #fafaf9; color: #1c1917; }
+.preset-cat-btn.open { border-radius: 10px 10px 0 0; background: #1c1917; color: white; }
+.preset-items { border: 1px solid #e7e5e4; border-top: none; border-radius: 0 0 10px 10px; overflow: hidden; }
+.preset-item { padding: 11px 14px; cursor: pointer; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #f5f5f4; }
+.preset-item:last-child { border-bottom: none; }
+.preset-item.selected { background: #fff7ed; }
+.checkbox { width: 20px; height: 20px; border-radius: 6px; border: 2px solid #e7e5e4; background: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.checkbox.checked { border: none; background: #f97316; }
+.overlap-overlay { position: absolute; inset: 0; background: rgba(255,255,255,.97); border-radius: 20px 20px 0 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px 20px; z-index: 10; }
+.settings-modal { background: white; border-radius: 20px 20px 0 0; width: 100%; max-height: 90vh; overflow-y: auto; padding-bottom: 40px; }
+.status-badge { border-radius: 12px; padding: 12px 14px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+.empty-state { text-align: center; padding: 40px 20px; color: #a8a29e; }
+.empty-icon { font-size: 36px; margin-bottom: 8px; }
+.calendar-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; }
+.cal-day { border-radius: 8px; padding: 6px 2px 4px; text-align: center; cursor: pointer; min-height: 44px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; border: 1px solid #e7e5e4; background: white; }
+.cal-day.today { border: 1.5px solid #a8a29e; background: #f5f5f4; }
+.cal-day.selected { background: #1c1917; }
+.cal-dot-row { display: flex; gap: 2px; margin-top: 3px; justify-content: center; }
+.cal-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+.journal-entry { background: white; border: 1px solid #e7e5e4; border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; }
+.comment { background: #f5f5f4; border-radius: 8px; padding: 8px 10px; margin-bottom: 6px; }
+.summary-card { background: white; border-radius: 14px; padding: 14px; }
+.gear-btn { background: #292524; border: none; border-radius: 8px; padding: 5px 9px; font-size: 18px; cursor: pointer; line-height: 1; }
+.parent-btn { background: #292524; border: none; border-radius: 8px; padding: 4px 10px; color: #a8a29e; font-size: 11px; cursor: pointer; }
+
+/* ── PARENT SELECTOR ──────────────────────────────────── */
+.parent-screen { min-height: 100vh; background: #1c1917; display: flex; flex-direction: column; padding: 20px; }
+.parent-card { background: white; border-radius: 20px; padding: 32px 24px; text-align: center; width: 100%; max-width: 340px; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+.parent-name-btn { display: block; width: 100%; padding: 16px; margin-bottom: 12px; border: none; border-radius: 14px; font-size: 16px; font-weight: 700; cursor: pointer; transition: transform .1s, opacity .1s; }
+.parent-name-btn:active { transform: scale(.97); opacity: .9; }
 </style>
 </head>
 <body>
-<div id="root"><div style="display:flex;align-items:center;justify-content:center;height:100vh;color:#a8a29e;">Loading...</div></div>
+
+<!-- Splash screen shown while app loads -->
+<div id="splash">
+  <div class="splash-icon">💜</div>
+  <div class="splash-title">KarmaKanvas</div>
+  <div class="splash-sub">Family · Consequence Tracker</div>
+  <div class="splash-dots">
+    <div class="splash-dot"></div>
+    <div class="splash-dot"></div>
+    <div class="splash-dot"></div>
+  </div>
+</div>
+
+<div id="root"></div>
 
 <script>
 // ═══════════════════════════════════════════════
@@ -718,6 +843,53 @@ function init() {
       setInterval(loadConsequences, 15000);
     });
 }
+
+init();
+
+
+// ── HIDE SPLASH AFTER LOAD ──────────────────────────────
+function hideSplash() {
+  var s = document.getElementById("splash");
+  if (s) {
+    s.classList.add("hidden");
+    setTimeout(function(){ s.style.display="none"; }, 400);
+  }
+}
+
+// Override renderParentSelector to use new native-looking design
+renderParentSelector = function() {
+  var settingsHtml = state.showSettings ? renderSettingsModal() : "";
+  return [
+    '<div class="parent-screen">',
+    '<div style="display:flex;justify-content:flex-end;margin-bottom:auto;padding-top:8px;">',
+    '<button class="gear-btn" onclick="openSettings()">&#9881;&#65039;</button>',
+    '</div>',
+    '<div style="flex:1;display:flex;align-items:center;justify-content:center;">',
+    '<div class="parent-card">',
+    '<div style="font-size:48px;margin-bottom:16px;">&#128075;</div>',
+    '<h2 style="font-size:22px;font-weight:700;color:#1c1917;margin:0 0 8px;">Welcome back!</h2>',
+    '<p style="font-size:14px;color:#78716c;margin:0 0 28px;line-height:1.5;">Who is managing consequences today?</p>',
+    '<button class="parent-name-btn" onclick="setParent(' + "'" + 'Mom' + "'" + ')" style="background:#f97316;color:white;">&#128105; Mom</button>',
+    '<button class="parent-name-btn" onclick="setParent(' + "'" + 'Dad' + "'" + ')" style="background:#8b5cf6;color:white;margin-bottom:0;">&#128104; Dad</button>',
+    '</div></div>',
+    settingsHtml,
+    '</div>'
+  ].join("");
+};
+
+// Override init to hide splash when ready
+var _origInit = init;
+init = function() {
+  store_get("current_parent")
+    .then(function(r){ state.currentParent=r.value||null; })
+    .catch(function(){ state.currentParent=null; })
+    .then(function() {
+      render();
+      hideSplash();
+      loadConsequences();
+      setInterval(loadConsequences, 15000);
+    });
+};
 
 init();
 </script>
