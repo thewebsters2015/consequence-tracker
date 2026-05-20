@@ -287,12 +287,12 @@
 <!-- Parent Select -->
 <div class="parent-select-overlay" id="parentSelectOverlay">
   <div class="parent-select-card">
-    <div style="font-size:48px;margin-bottom:12px">📋</div>
+
     <h2>Family Consequence Tracker</h2>
     <p>Who's opening the app?</p>
     <div class="parent-btns">
-      <button class="parent-btn mom" onclick="selectParent('Mom')">👩 Mom</button>
-      <button class="parent-btn dad" onclick="selectParent('Dad')">👨 Dad</button>
+      <button class="parent-btn mom" onclick="selectParent('Mom')">Mom</button>
+      <button class="parent-btn dad" onclick="selectParent('Dad')">Dad</button>
     </div>
   </div>
 </div>
@@ -473,10 +473,20 @@
           <textarea class="form-input" id="consequenceNotes" placeholder="Any additional notes..."></textarea>
         </div>
 
-        <button class="btn-assign" id="btnAssign" onclick="submitConsequence()">Assign Consequence</button>
+        <button class="btn-assign" id="btnAssign" onclick="submitConsequence()" style="background:var(--zariah)">Assign Consequence</button>
         <button class="btn-back" onclick="goToStep1()">← Back</button>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- Success Pop-up Modal -->
+<div class="modal-overlay" id="successModal" style="align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:24px;padding:32px 28px;width:88%;max-width:340px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.25);">
+    <div style="font-size:56px;margin-bottom:12px">✅</div>
+    <div style="font-size:20px;font-weight:900;color:var(--text);margin-bottom:8px">Consequence Added</div>
+    <div style="font-size:15px;color:var(--text-2);margin-bottom:24px" id="successMsg">The consequence has been saved and synced.</div>
+    <button onclick="closeSuccessModal()" id="successOkBtn" style="width:100%;padding:14px;border:none;border-radius:14px;background:var(--zariah);color:white;font-family:'Nunito',sans-serif;font-size:16px;font-weight:800;cursor:pointer;">Got it</button>
   </div>
 </div>
 
@@ -1020,6 +1030,8 @@ function selectKid(kid) {
   selectedKid = kid;
   updateKidSelector();
   updateEndDatePreview();
+  const clr = kid === 'serenity' ? 'var(--serenity)' : kid === 'both' ? 'var(--both)' : 'var(--zariah)';
+  document.getElementById('btnAssign').style.background = clr;
 }
 
 function updateKidSelector() {
@@ -1086,7 +1098,23 @@ function submitConsequence(override) {
   saveAndSync();
   renderAll();
   closeAddModal();
-  showToast('✅ Consequence assigned');
+  showSuccessModal(kidsToAdd);
+}
+
+function showSuccessModal(kids) {
+  const names = kids.map(k => k.charAt(0).toUpperCase() + k.slice(1)).join(' & ');
+  document.getElementById('successMsg').textContent = 'Consequence has been added for ' + names + '.';
+  // Color the OK button to match kid
+  const okBtn = document.getElementById('successOkBtn');
+  const clr = kids[0] === 'serenity' ? 'var(--serenity)' : kids[0] === 'both' ? 'var(--both)' : 'var(--zariah)';
+  okBtn.style.background = clr;
+  document.getElementById('successModal').classList.add('open');
+  document.body.classList.add('no-scroll');
+}
+
+function closeSuccessModal() {
+  document.getElementById('successModal').classList.remove('open');
+  document.body.classList.remove('no-scroll');
 }
 
 function showOverlapWarning(overlapping, kid) {
