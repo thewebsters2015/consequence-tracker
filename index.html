@@ -432,15 +432,7 @@
 
       <!-- Step 2 -->
       <div id="step2" style="display:none">
-        <div class="warning-overlay" id="warningOverlay">
-          <div class="warning-title">⚠️ Too Many Active Consequences</div>
-          <div class="warning-body">We recommend resolving an existing consequence before adding another.</div>
-          <div id="warningList"></div>
-          <div class="warning-actions">
-            <button class="btn-warn-back" onclick="warningGoBack()">← Go Back & Review</button>
-            <button class="btn-warn-override" onclick="warningOverride()">Add Anyway</button>
-          </div>
-        </div>
+        <!-- overlap warning moved to full-screen overlay -->
 
         <div class="form-group">
           <label class="form-label">Consequence</label>
@@ -475,6 +467,30 @@
 
         <button class="btn-assign" id="btnAssign" onclick="submitConsequence()" style="background:var(--zariah)">Assign Consequence</button>
         <button class="btn-back" onclick="goToStep1()">← Back</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Full-Screen Overlap Block Overlay -->
+<div id="overlapBlockOverlay" style="display:none;position:fixed;inset:0;background:rgba(26,26,46,0.82);backdrop-filter:blur(6px);z-index:500;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:white;border-radius:24px;width:100%;max-width:420px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,0.35);">
+    <!-- Red alert header -->
+    <div style="background:#E63946;padding:20px 24px 16px;">
+      <div style="font-size:32px;margin-bottom:6px">⚠️</div>
+      <div style="font-size:19px;font-weight:900;color:white;line-height:1.2">Too Many Active Consequences</div>
+    </div>
+    <!-- Body -->
+    <div style="padding:20px 24px;">
+      <div id="overlapKidName" style="font-size:15px;font-weight:800;color:#E63946;margin-bottom:6px"></div>
+      <div style="font-size:14px;color:#5A5A72;margin-bottom:16px;line-height:1.6">We recommend resolving an existing consequence before adding another.</div>
+      <!-- Conflicting consequences list -->
+      <div style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#9A9AB0;margin-bottom:8px">Consequences already in place:</div>
+      <div id="overlapConflictList" style="margin-bottom:20px"></div>
+      <!-- Action buttons -->
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button onclick="overlapGoBack()" style="width:100%;padding:14px;border:2px solid #1A1A2E;border-radius:14px;background:white;font-family:'Nunito',sans-serif;font-size:15px;font-weight:800;cursor:pointer;color:#1A1A2E;">← Go Back &amp; Review</button>
+        <button onclick="overlapAddAnyway()" style="width:100%;padding:14px;border:none;border-radius:14px;background:#F4A261;font-family:'Nunito',sans-serif;font-size:15px;font-weight:800;cursor:pointer;color:white;">Add Anyway</button>
       </div>
     </div>
   </div>
@@ -914,7 +930,7 @@ function openAddModal(kid) {
   document.getElementById('addModalTitle').textContent = 'Add Consequence';
   document.getElementById('consequenceNotes').value = '';
   document.getElementById('customConsequenceInput').value = '';
-  document.getElementById('warningOverlay').classList.remove('show');
+  document.getElementById('overlapBlockOverlay').style.display = 'none';
 
   const today2 = new Date().toISOString().split('T')[0];
   document.getElementById('startDateInput').value = today2;
@@ -1040,17 +1056,21 @@ function updateKidSelector() {
   document.getElementById('kidBtnBoth').className = 'kid-sel-btn' + (selectedKid==='both'?' selected-both':'');
 }
 
-// ── OVERLAP CHECK ──
+// ── OVERLAP CHECK (date-smart: only flags active/upcoming, never past) ──
 function getActiveOverlapping(kid, startDate, endDate) {
+  const todayStr = today();
   return consequences.filter(c => {
-    if (c.resolved || isExpired(c)) return false;
-    if (c.kid !== kid && c.kid !== 'both' && kid !== 'both') return false;
-    if (!isActive(c) && c.startDate > today()) {
-      // upcoming — still check overlap
-    } else if (!isActive(c)) return false;
-    // Check date overlap
-    const cs = c.startDate;
+    // Skip already resolved consequences
+    if (c.resolved) return false;
+    // Skip consequences that have fully ended in the past
     const ce = c.endDate || '9999-12-31';
+    if (ce < todayStr) return false;
+    // Kid match: consequence must belong to this kid or to 'both'
+    if (c.kid !== kid && c.kid !== 'both') return false;
+    // Date-smart overlap: the existing consequence's range must intersect
+    // the new consequence's range. Uses standard interval overlap test:
+    // A overlaps B iff A.start <= B.end AND A.end >= B.start
+    const cs = c.startDate;
     const ns = startDate;
     const ne = endDate || '9999-12-31';
     return cs <= ne && ce >= ns;
@@ -1067,13 +1087,13 @@ function submitConsequence(override) {
   const end = addDays(start, selectedDuration);
   const notes = document.getElementById('consequenceNotes').value.trim();
 
-  // Overlap check
+  // ── Date-smart overlap check: flag if ≥ 2 active/upcoming consequences overlap ──
   if (!warningOverrideFlag) {
     const kidsToCheck = selectedKid === 'both' ? ['zariah','serenity'] : [selectedKid];
     for (const k of kidsToCheck) {
       const overlapping = getActiveOverlapping(k, start, end);
       if (overlapping.length >= 2) {
-        showOverlapWarning(overlapping, k);
+        showOverlapBlockScreen(overlapping, k);
         return;
       }
     }
@@ -1117,22 +1137,39 @@ function closeSuccessModal() {
   document.body.classList.remove('no-scroll');
 }
 
-function showOverlapWarning(overlapping, kid) {
-  const ov = document.getElementById('warningOverlay');
-  const wl = document.getElementById('warningList');
-  wl.innerHTML = overlapping.map(c => `<div class="warning-card">📌 ${esc(c.description)}<br><small>${formatDate(c.startDate)} – ${formatDate(c.endDate)}</small></div>`).join('');
-  ov.querySelector('.warning-body').innerHTML = `<strong>${kid.charAt(0).toUpperCase()+kid.slice(1)}</strong> already has ${overlapping.length} active consequence(s) during this time. We recommend resolving an existing consequence before adding another.`;
-  ov.classList.add('show');
-  ov.scrollIntoView({behavior:'smooth', block:'start'});
+// ── FULL-SCREEN OVERLAP BLOCK ──
+function showOverlapBlockScreen(overlapping, kid) {
+  const kidName = kid.charAt(0).toUpperCase() + kid.slice(1);
+  document.getElementById('overlapKidName').textContent =
+    kidName + ' already has ' + overlapping.length + ' active consequence(s) during this time period.';
+
+  // Build the conflict cards showing description + exact start & end dates
+  document.getElementById('overlapConflictList').innerHTML = overlapping.map(c => `
+    <div style="background:#FFF5F5;border:1px solid #FFCDD2;border-radius:12px;padding:12px 14px;margin-bottom:8px;">
+      <div style="font-size:14px;font-weight:800;color:#1A1A2E;margin-bottom:4px">📌 ${esc(c.description)}</div>
+      <div style="font-size:12px;color:#E63946;font-weight:700">
+        ${formatDate(c.startDate)} → ${c.endDate ? formatDate(c.endDate) : 'Ongoing'}
+      </div>
+    </div>`).join('');
+
+  // Show the overlay
+  const overlay = document.getElementById('overlapBlockOverlay');
+  overlay.style.display = 'flex';
+  document.body.classList.add('no-scroll');
 }
 
-function warningGoBack() {
-  document.getElementById('warningOverlay').classList.remove('show');
+function overlapGoBack() {
+  // Close the block screen — user stays on Step 2 to change dates/kid or cancel
+  document.getElementById('overlapBlockOverlay').style.display = 'none';
+  document.body.classList.remove('no-scroll');
 }
-function warningOverride() {
+
+function overlapAddAnyway() {
+  // Override: close the block screen and re-submit skipping the check
   warningOverrideFlag = true;
-  document.getElementById('warningOverlay').classList.remove('show');
-  submitConsequence(true);
+  document.getElementById('overlapBlockOverlay').style.display = 'none';
+  document.body.classList.remove('no-scroll');
+  submitConsequence();
 }
 
 // ── CALENDAR ──
