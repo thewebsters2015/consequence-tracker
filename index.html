@@ -281,6 +281,68 @@
   .empty-state p { font-size: 1.1rem; font-weight: 700; }
 
   .no-scroll { overflow: hidden; }
+
+  /* ══════════════════════════════════════════════
+     MOBILE-ONLY OVERRIDES (≤600px)
+     Desktop styles above are completely untouched
+     ══════════════════════════════════════════════ */
+  @media (max-width: 600px) {
+
+    /* Bigger base font — everything scales from here */
+    html { font-size: clamp(20px, 5.5vw, 24px); }
+
+    /* Fill full height so no dead white gap below content */
+    .content { display: flex; flex-direction: column; }
+    .tab-panel { display: none; flex: 1; flex-direction: column; padding: 16px; min-height: unset; }
+    .tab-panel.active { display: flex; }
+
+    /* Empty state expands to fill leftover space, centering the icon */
+    .empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0 20px;
+    }
+
+    /* History toggle sits naturally after content, no gap */
+    .history-toggle { margin-top: 12px; }
+
+    /* Header tighter on mobile */
+    .header { padding: 10px 14px 0; padding-top: max(10px, env(safe-area-inset-top)); }
+    .header-top { margin-bottom: 10px; }
+    .header-brand small { font-size: 0.65rem; }
+    .header-brand h1 { font-size: 1.5rem; }
+
+    /* Kid tabs tighter */
+    .kid-tab { padding: 10px 6px; font-size: 1rem; }
+
+    /* Stats row */
+    .stats-row { margin-bottom: 12px; gap: 6px; }
+    .stat-card { padding: 12px 6px; }
+    .stat-card .num { font-size: 1.7rem; }
+    .stat-card .lbl { font-size: 0.7rem; }
+
+    /* Add button */
+    .btn-add { padding: 16px; font-size: 1.1rem; margin-bottom: 12px; }
+
+    /* Consequence cards */
+    .consequence-card { padding: 16px; margin-bottom: 10px; }
+    .card-title { font-size: 1.05rem; }
+    .card-meta { font-size: 0.8rem; }
+    .days-badge { font-size: 0.8rem; padding: 5px 10px; }
+
+    /* Bottom nav — shrink padding so it sits closer to content */
+    .bottom-nav { padding-bottom: max(4px, env(safe-area-inset-bottom)); }
+    .nav-btn { padding: 8px 4px 6px; font-size: 0.65rem; gap: 2px; }
+    .nav-btn .nav-icon { font-size: 1.45rem; }
+
+    /* Btn action sizes */
+    .btn-sm { font-size: 0.82rem; padding: 6px 12px; }
+    .notes-toggle { font-size: 0.8rem; }
+    .history-toggle { font-size: 0.85rem; padding: 11px; }
+  }
 </style>
 </head>
 <body>
