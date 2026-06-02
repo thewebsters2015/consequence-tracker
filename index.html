@@ -343,6 +343,43 @@
     .notes-toggle { font-size: 0.8rem; }
     .history-toggle { font-size: 0.85rem; padding: 11px; }
   }
+
+  @media (max-width: 600px) {
+    /* Hide the fixed bottom nav on mobile */
+    .bottom-nav { display: none !important; }
+
+    /* Inline nav bar that lives inside the panel */
+    .inline-nav {
+      display: flex;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-top: 14px;
+      box-shadow: var(--shadow);
+    }
+    .inline-nav-btn {
+      flex: 1;
+      padding: 10px 4px 8px;
+      border: none;
+      background: transparent;
+      font-family: var(--font);
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--text-3);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      transition: color 0.15s, background 0.15s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .inline-nav-btn .nav-icon { font-size: 1.35rem; line-height: 1; }
+    .inline-nav-btn.active { color: var(--zariah); background: var(--zariah-light); }
+    .inline-nav-btn:active { background: var(--border); }
+  }
 </style>
 </head>
 <body>
@@ -395,6 +432,22 @@
     <div id="list-zariah-active"></div>
     <button class="history-toggle" id="hist-btn-zariah" onclick="toggleHistory('zariah')">📜 Show History</button>
     <div id="list-zariah-history" style="display:none"></div>
+
+    <!-- Mobile inline nav (hidden on desktop via CSS) -->
+    <div class="inline-nav">
+      <button class="inline-nav-btn active" id="inav-list" onclick="switchView('list')">
+        <span class="nav-icon">≡</span>LIST
+      </button>
+      <button class="inline-nav-btn" id="inav-calendar" onclick="switchView('calendar')">
+        <span class="nav-icon">📅</span>CALENDAR
+      </button>
+      <button class="inline-nav-btn" id="inav-summary" onclick="switchView('summary')">
+        <span class="nav-icon">📊</span>SUMMARY
+      </button>
+      <button class="inline-nav-btn" id="inav-journal" onclick="switchView('journal')">
+        <span class="nav-icon">📓</span>JOURNAL
+      </button>
+    </div>
   </div>
 
   <!-- SERENITY TAB -->
@@ -404,6 +457,22 @@
     <div id="list-serenity-active"></div>
     <button class="history-toggle" id="hist-btn-serenity" onclick="toggleHistory('serenity')">📜 Show History</button>
     <div id="list-serenity-history" style="display:none"></div>
+
+    <!-- Mobile inline nav (hidden on desktop via CSS) -->
+    <div class="inline-nav">
+      <button class="inline-nav-btn active" id="inav-s-list" onclick="switchView('list')">
+        <span class="nav-icon">≡</span>LIST
+      </button>
+      <button class="inline-nav-btn" id="inav-s-calendar" onclick="switchView('calendar')">
+        <span class="nav-icon">📅</span>CALENDAR
+      </button>
+      <button class="inline-nav-btn" id="inav-s-summary" onclick="switchView('summary')">
+        <span class="nav-icon">📊</span>SUMMARY
+      </button>
+      <button class="inline-nav-btn" id="inav-s-journal" onclick="switchView('journal')">
+        <span class="nav-icon">📓</span>JOURNAL
+      </button>
+    </div>
   </div>
 
   <!-- BOTH TAB -->
@@ -414,6 +483,22 @@
     <div id="list-both-zariah"></div>
     <div class="section-heading">Serenity</div>
     <div id="list-both-serenity"></div>
+
+    <!-- Mobile inline nav (hidden on desktop via CSS) -->
+    <div class="inline-nav">
+      <button class="inline-nav-btn active" id="inav-b-list" onclick="switchView('list')">
+        <span class="nav-icon">≡</span>LIST
+      </button>
+      <button class="inline-nav-btn" id="inav-b-calendar" onclick="switchView('calendar')">
+        <span class="nav-icon">📅</span>CALENDAR
+      </button>
+      <button class="inline-nav-btn" id="inav-b-summary" onclick="switchView('summary')">
+        <span class="nav-icon">📊</span>SUMMARY
+      </button>
+      <button class="inline-nav-btn" id="inav-b-journal" onclick="switchView('journal')">
+        <span class="nav-icon">📓</span>JOURNAL
+      </button>
+    </div>
   </div>
 
   <!-- CALENDAR TAB -->
@@ -965,7 +1050,13 @@ function switchKidTab(kid) {
 function switchView(view) {
   currentView = view;
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('nav-' + view).classList.add('active');
+  const mainNav = document.getElementById('nav-' + view);
+  if (mainNav) mainNav.classList.add('active');
+  // Sync all inline nav bars (mobile)
+  document.querySelectorAll('.inline-nav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll(
+    '#inav-' + view + ', #inav-s-' + view + ', #inav-b-' + view
+  ).forEach(b => b.classList.add('active'));
 
   // Hide all panels
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
